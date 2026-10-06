@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen bg-[#F7F7F7]">
+    <div class="mx-auto max-w-[540px] px-5">
+        <h1 class="pt-20 text-center text-4xl font-medium text-[#808080]">
+            Task App
+        </h1>
+        <form id="task-form"
+            class="mt-10 rounded-2xl bg-white px-[21px] pb-[28px] pt-[23px] shadow-[0px_11px_44px_-10px_#00000040]">
+            <div class="flex gap-3">
+                <input
+                    id="add-task"
+                    type="text"
+                    placeholder="Enter your task"
+                    autocomplete="off"
+                    class="min-w-0 flex-1 rounded-lg border border-gray-200 px-4 py-3 text-base outline-none transition focus:border-purple-500">
+                <button
+                    type="submit"
+                    class="rounded-lg bg-purple-600 px-5 py-3 font-medium text-white transition hover:bg-purple-700">
+                    Add
+                </button>
+            </div>
+            <p id="error-message" class="mt-2 hidden text-sm text-red-500">
+                Please enter a task.
+            </p>
+        </form>
+        <div id="task-list" class="mt-6 space-y-3">
+        </div>
+    </div>
+    <script>
+        const taskForm = document.getElementById("task-form");
+        const taskInput = document.getElementById("add-task");
+        const taskList = document.getElementById("task-list");
+        const errorMessage = document.getElementById("error-message");
+
+        let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+        function saveTasks() {
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        function displayTasks() {
+            taskList.innerHTML = "";
+            tasks.forEach(function(task) {
+                const taskDiv = document.createElement("div");
+                taskDiv.className =
+                    "flex items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm";
+
+                const taskText = document.createElement("span");
+                taskText.className =
+                    "min-w-0 flex-1 break-words text-gray-700";
+                taskText.textContent = task.text;
+
+                const buttons = document.createElement("div");
+                buttons.className = "flex shrink-0 gap-2";
+
+                const completeButton = document.createElement("button");
+                completeButton.type = "button";
+                completeButton.textContent =
+                    task.completed ? "Undo" : "Done";
+                completeButton.className =
+                    "rounded-lg bg-green-500 px-3 py-2 text-sm font-medium text-white hover:bg-green-600";
+                completeButton.addEventListener("click", function() {
+                    task.completed = !task.completed;
+                    saveTasks();
+                    displayTasks();
+                });
+
+                // Delete button
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.textContent = "Delete";
+                deleteButton.className =
+                    "rounded-lg bg-red-500 px-3 py-2 text-sm font-medium text-white hover:bg-red-600";
+                deleteButton.addEventListener("click", function() {
+                    tasks = tasks.filter(function(item) {
+                        return item.id !== task.id;
+                    });
+                    saveTasks();
+                    displayTasks();
+                });
+
+                if (task.completed) {
+                    taskText.classList.add(
+                        "text-gray-400",
+                        "line-through"
+                    );
+                }
+
+                buttons.appendChild(completeButton);
+                buttons.appendChild(deleteButton);
+                taskDiv.appendChild(taskText);
+                taskDiv.appendChild(buttons);
+                taskList.appendChild(taskDiv);
+            });
+        }
+
+        taskForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+            const taskValue = taskInput.value.trim();
+
+            if (taskValue === "") {
+                errorMessage.classList.remove("hidden");
+                taskInput.focus();
+                return;
+            }
+
+            errorMessage.classList.add("hidden");
+
+            const newTask = {
+                id: Date.now(),
+                text: taskValue,
+                completed: false
+            };
+
+            tasks.push(newTask);
+
+            saveTasks();
+
+            displayTasks();
+
+            taskInput.value = "";
+            taskInput.focus();
+        });
+
+        displayTasks();
+
+    </script>
+
+</body>
+</html>
